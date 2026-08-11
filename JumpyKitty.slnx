@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="JumpyKitty.Core/JumpyKitty.Core.csproj" Id="c6492caf-391a-4d1c-955f-86c2327a23f8" />
+  <Project Path="JumpyKitty.Desktop/JumpyKitty.Desktop.csproj" />
+</Solution>
