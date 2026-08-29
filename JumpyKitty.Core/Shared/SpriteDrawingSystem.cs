@@ -9,7 +9,7 @@ namespace JumpyKitty.Core.Shared;
 
 internal class SpriteDrawingSystem : EntityDrawSystem, IUpdateSystem
 {
-    private readonly OrthographicCamera _camera;    
+    private readonly OrthographicCamera _camera;
     private ComponentMapper<EntityStateComponent> _entityStateMapper = default!;
     private ComponentMapper<MultiplexedSpriteComponent> _multiplexedSpriteMapper = default!;
     private readonly SpriteBatch _spriteBatch;
@@ -17,7 +17,7 @@ internal class SpriteDrawingSystem : EntityDrawSystem, IUpdateSystem
     private ComponentMapper<Transform2> _transformMapper = default!;
 
     public SpriteDrawingSystem(SpriteBatch spriteBatch, OrthographicCamera camera) : base(Aspect
-        .All(typeof(EntityStateComponent), typeof(Transform2))
+        .All(typeof(EntityStateComponent))
         .One(typeof(Sprite), typeof(MultiplexedSpriteComponent)))
     {
         _spriteBatch = spriteBatch;
@@ -47,6 +47,7 @@ internal class SpriteDrawingSystem : EntityDrawSystem, IUpdateSystem
             // Otherwise, check if this is a multiplexed sprite or a single sprite and draw accordingly
             if (_multiplexedSpriteMapper.Has(entityId))
             {
+                // This is a multiplexed sprite, so draw all of its 'child' sprites
                 var multiplexedSpriteComponent = _multiplexedSpriteMapper.Get(entityId);
 
                 for (int i = 0; i < multiplexedSpriteComponent.Sprites.Length; i++)
@@ -56,6 +57,7 @@ internal class SpriteDrawingSystem : EntityDrawSystem, IUpdateSystem
             }
             else
             {
+                // This is just a normal sprite, so draw it normally
                 var spriteComponent = _spriteMapper.Get(entityId);
                 var transformComponent = _transformMapper.Get(entityId);
 

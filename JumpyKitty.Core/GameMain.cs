@@ -21,7 +21,7 @@ public class GameMain : Game
     // Since we're using 16 bit pixel style graphics we'll use kind
     // 16 bit style 'virtual' resolution which we'll scale later to
     // whatever screen size
-    private const int _virtualResolutionWidth = 640, _virtualResolutionHeight = 480;
+    private const int _virtualResolutionWidth = 1080, _virtualResolutionHeight = 1920;
 
     private CustomRenderTarget _customRenderTarget = default!;
     private readonly GraphicsDeviceManager _graphics;
@@ -35,8 +35,19 @@ public class GameMain : Game
         IsMouseVisible = true;
 
         // Set initial video config
-        _graphics.PreferredBackBufferWidth = 1920;
-        _graphics.PreferredBackBufferHeight = 1080;
+        _graphics.PreferredBackBufferWidth = _virtualResolutionWidth;
+        _graphics.PreferredBackBufferHeight = _virtualResolutionHeight;
+        
+        // If we want a different target fps from the default (which in Monogame is 60), then
+        // we need to set the target 'time elapsed' we want for the specified target fps        
+        TargetElapsedTime = TimeSpan.FromTicks((long)(TimeSpan.TicksPerSecond / 119));
+        IsFixedTimeStep = true;
+        InactiveSleepTime = TimeSpan.Zero;
+
+        // No vsync
+        _graphics.SynchronizeWithVerticalRetrace = false;
+
+        // Apply changes
         _graphics.ApplyChanges();
 
         // Add the Monogame.Extended screen manager as per normal...
