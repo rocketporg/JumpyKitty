@@ -1,4 +1,5 @@
-﻿using JumpyKitty.Core.Platforms;
+﻿using JumpyKitty.Core.Background;
+using JumpyKitty.Core.Platforms;
 using JumpyKitty.Core.Shared;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -10,14 +11,16 @@ namespace JumpyKitty.Core.Screens;
 
 internal class GamePlayScreen : GameScreen
 {
-    private readonly CameraSystem _cameraSystem = default!;
-    private readonly PauseScreen _pauseScreen = default!;
-    private readonly PlatformSystem _platformSystem = default!;
-    private readonly ScreenManager _screenManager = default!;
-    private readonly SpriteDrawingSystem _spriteDrawingSystem = default!;
+    private readonly BackgroundSystem _backgroundSystem;
+    private readonly CameraSystem _cameraSystem;
+    private readonly PauseScreen _pauseScreen;
+    private readonly PlatformSystem _platformSystem;
+    private readonly ScreenManager _screenManager;
+    private readonly SpriteDrawingSystem _spriteDrawingSystem;
     private World? _world;
 
     public GamePlayScreen(
+        BackgroundSystem backgroundSystem,
         CameraSystem cameraSystem,
         Game game,
         PauseScreen pauseScreen,
@@ -25,6 +28,7 @@ internal class GamePlayScreen : GameScreen
         ScreenManager screenManager,
         SpriteDrawingSystem spriteDrawingSystem) : base(game)
     {
+        _backgroundSystem = backgroundSystem;
         _cameraSystem = cameraSystem;
         _pauseScreen = pauseScreen;
         _platformSystem = platformSystem;
@@ -39,6 +43,7 @@ internal class GamePlayScreen : GameScreen
         // Add systems        
         _world = new WorldBuilder()
 
+            .AddSystem(_backgroundSystem)
             .AddSystem(_platformSystem)
             .AddSystem(_spriteDrawingSystem)
 
