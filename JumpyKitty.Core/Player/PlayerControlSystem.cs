@@ -34,5 +34,10 @@ internal class PlayerControlSystem : EntityProcessingSystem
         playerComponent.JumpPressed = keyboardState.IsKeyDown(Keys.Space)
             || gamePadState.Buttons.A == ButtonState.Pressed
             || touching;
+
+        if (playerComponent.JumpPressed)
+        {
+            var x = 1;
+        }
     }
 }

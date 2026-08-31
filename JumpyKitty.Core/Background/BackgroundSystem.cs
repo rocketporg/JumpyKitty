@@ -10,14 +10,14 @@ using System;
 namespace JumpyKitty.Core.Background;
 
 internal class BackgroundSystem : EntityDrawSystem, IUpdateSystem
-{    
+{
     private const int _backgroundParallaxStrength = 6;
     private const int _backgroundObjectScale = 1;
     private const int _cloudHeightOffsetMinimum = -256, _cloudHeightOffsetMaximum = 256;
     private const int _maxClouds = 24;
     private const int _randomNextCloudSpawnTimerMinimumValue = 400, _randomNextCloudSpawnTimerMaximumValue = 800;
 
-    private readonly ContentManager _contentManager;    
+    private readonly ContentManager _contentManager;
     private Texture2D _cloudTextureSmall = default!;
     private Texture2D _cloudTextureMedium = default!;
     private Texture2D _cloudTextureLarge = default!;
@@ -34,7 +34,7 @@ internal class BackgroundSystem : EntityDrawSystem, IUpdateSystem
     private Texture2D _sunTexture = default!;
     private ComponentMapper<Transform2> _transformMapper = default!;
 
-    public BackgroundSystem(ContentManager contentManager, SpriteBatch spriteBatch) : base(Aspect.All(        
+    public BackgroundSystem(ContentManager contentManager, SpriteBatch spriteBatch) : base(Aspect.All(
         typeof(BackgroundObjectComponent),
         typeof(Sprite),
         typeof(Transform2)))
@@ -193,12 +193,12 @@ internal class BackgroundSystem : EntityDrawSystem, IUpdateSystem
 
     public void Update(GameTime gameTime)
     {
-        var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        var deltaTime = gameTime.GetElapsedSeconds();
         //_countdownToNextCloudSpawn = UpdateBackgroundObjects(gameTime, _clouds, _cloudHeight + _randomNumberGenerator.Next(_cloudHeightOffsetMinimum, _cloudHeightOffsetMaximum), _countdownToNextCloudSpawn, _randomNextCloudSpawnTimerMinimumValue, _randomNextCloudSpawnTimerMaximumValue, 4);
 
         // Move the distant and close forest layers to the left, creating a parallax effect
         _forestDistantX -= 100f * deltaTime;
-        if (_forestDistantX < - _spriteBatch.GraphicsDevice.Viewport.Width - 1) _forestDistantX = 0;
+        if (_forestDistantX < -_spriteBatch.GraphicsDevice.Viewport.Width - 1) _forestDistantX = 0;
 
         // Move the close forest layer to the left slightly faster, creating a parallax effect
         _forestCloseX -= 150f * deltaTime;

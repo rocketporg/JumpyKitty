@@ -2,9 +2,5 @@
 
 internal enum BackgroundObjectType
 {
-    Sky,
-    Sun,
-    ForestClose,
-    ForestDistant,
     Cloud
 }

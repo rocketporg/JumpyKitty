@@ -24,7 +24,7 @@ internal class PauseScreen : GameScreen
         var keyboardState = KeyboardExtended.GetState();
 
         // If the pause toggle was pressed, we unpause and return to the gameplay screen
-        if (keyboardState.WasKeyPressed(Keys.Space))
+        if (keyboardState.WasKeyPressed(Keys.P))
             _screenManager.CloseScreen();
     }
 }

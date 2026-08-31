@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Backgrounds\" />
-    <Folder Include="Extensions\" />
     <Folder Include="Screens\" />
   </ItemGroup>
 </Project>

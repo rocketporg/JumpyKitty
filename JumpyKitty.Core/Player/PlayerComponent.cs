@@ -2,5 +2,6 @@
 
 internal class PlayerComponent
 {
+    public bool IsOnGround = false;
     public bool JumpPressed = false;
 }

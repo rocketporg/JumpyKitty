@@ -33,14 +33,12 @@ internal class PlatformSystem : EntityUpdateSystem
     private ComponentMapper<MultiplexedSpriteComponent> _multiplexedSpriteMapper = default!;
     private ComponentMapper<PlatformComponent> _platformMapper = default!;
     private readonly Random _randomNumberGenerator = new();
+    private ComponentMapper<SizeComponent> _sizeMapper = default!;
     private Texture2DAtlas _spriteAtlas = default!;
     private readonly SpriteBatch _spriteBatch = default!;
     private ComponentMapper<Transform2> _transformMapper = default!;
 
-    public PlatformSystem(SpriteBatch spriteBatch, ContentManager contentManager) : base(Aspect.All(
-        typeof(EntityStateComponent),
-        typeof(PlatformComponent),
-        typeof(Transform2)))
+    public PlatformSystem(SpriteBatch spriteBatch, ContentManager contentManager) : base(Aspect.All(typeof(PlatformComponent)))
     {
         _spriteBatch = spriteBatch;
         _contentManager = contentManager;
@@ -51,6 +49,7 @@ internal class PlatformSystem : EntityUpdateSystem
         _entityStateMapper = mapperService.GetMapper<EntityStateComponent>();
         _multiplexedSpriteMapper = mapperService.GetMapper<MultiplexedSpriteComponent>();
         _platformMapper = mapperService.GetMapper<PlatformComponent>();
+        _sizeMapper = mapperService.GetMapper<SizeComponent>();
         _transformMapper = mapperService.GetMapper<Transform2>();
 
         // Load the sprite atlas for the platform blocks        
@@ -66,21 +65,45 @@ internal class PlatformSystem : EntityUpdateSystem
         _blockSprites[(int)BlockType.RightTrunk] = _spriteAtlas.CreateSprite(5);
 
         // Create several Platform entities to use and re-use
-        for (int i = 0; i < _maxNumberOfPlatforms; i++)
+        for (int platformNumber = 0; platformNumber < _maxNumberOfPlatforms; platformNumber++)
         {
             var entity = CreateEntity();
 
             // Add the necessary components to the entity
+            entity.Attach(new BoundingBoxComponent());
             entity.Attach(new EntityStateComponent { State = EntityState.Disabled });
             entity.Attach(new MultiplexedSpriteComponent());
             entity.Attach(new PlatformComponent());
+            entity.Attach(new SizeComponent());
             entity.Attach(new Transform2());
-        }
+
+            // Some special treatment for the starting platform 
+            if (platformNumber == 0)
+            {                
+                var entityStateComponent = entity.Get<EntityStateComponent>();
+                entityStateComponent.State = EntityState.Alive;
+
+                var platformComponent = entity.Get<PlatformComponent>();
+                platformComponent.WidthInBlocks = _spriteBatch.GraphicsDevice.Viewport.Width / _blockSpriteWidth;
+                platformComponent.HeightInBlocks = 10;
+
+                var sizeComponent = entity.Get<SizeComponent>();
+                sizeComponent.Width = platformComponent.WidthInBlocks * _blockSpriteWidth;
+                sizeComponent.Height = platformComponent.HeightInBlocks * _blockSpriteHeight;
+
+                var transformComponent = entity.Get<Transform2>();
+                transformComponent.Position = new Vector2(
+                    _spriteBatch.GraphicsDevice.Viewport.Bounds.Left,
+                    _spriteBatch.GraphicsDevice.Viewport.Bounds.Bottom - sizeComponent.Height);
+
+                BuildPlatformBlocks(transformComponent, platformComponent, entity.Get<MultiplexedSpriteComponent>());
+            }            
+        }        
     }
 
     public override void Update(GameTime gameTime)
     {
-        var deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+        var deltaTime = gameTime.GetElapsedSeconds();
         var timeToRespawnAnotherPlatform = false;
 
         // Framerate independent timer
@@ -103,6 +126,7 @@ internal class PlatformSystem : EntityUpdateSystem
             var entityStateComponent = _entityStateMapper.Get(entityId);
             var multiplexedSpriteComponent = _multiplexedSpriteMapper.Get(entityId);
             var platformComponent = _platformMapper.Get(entityId);
+            var sizeComponent = _sizeMapper.Get(entityId);
             var transformComponent = _transformMapper.Get(entityId);
 
             // Is this Platform disabled and ready to be respawned?
@@ -115,7 +139,7 @@ internal class PlatformSystem : EntityUpdateSystem
                 // Reset the Platform's state back to 'alive', set its dimensions
                 // and position to the right hand side of the screen ready for
                 // it to move left across the screen
-                ResetPlatform(entityStateComponent, transformComponent, platformComponent, multiplexedSpriteComponent);
+                RespawnPlatform(entityStateComponent, transformComponent, platformComponent, multiplexedSpriteComponent, sizeComponent);
             }
 
             // Is this Platform disabled? If so, we don't want to draw it or move it...
@@ -134,33 +158,8 @@ internal class PlatformSystem : EntityUpdateSystem
         }
     }
 
-    private static void UpdatePlatform(float velocity, Transform2 transformComponent, PlatformComponent platformComponent, MultiplexedSpriteComponent multiplexedSpriteComponent)
+    private void BuildPlatformBlocks(Transform2 transformComponent, PlatformComponent platformComponent, MultiplexedSpriteComponent multiplexedSpriteComponent)
     {
-        // Move the Platform left across the screen based on the speed
-        var translation = new Vector2(velocity, 0);
-        transformComponent.Position += translation;
-
-        // Each Platform consists of a grid of blocks, so we need to 
-        // update each blocks individual position based on the speed too
-        for (var i = 0; i < multiplexedSpriteComponent.Transforms.Length; i++)
-            multiplexedSpriteComponent.Transforms[i].Position += translation;
-    }
-
-    private void ResetPlatform(EntityStateComponent entityStateComponent, Transform2 transformComponent, PlatformComponent platformComponent, MultiplexedSpriteComponent multiplexedSpriteComponent)
-    {
-        // Re-enable the Platform and set its position to the right hand side of the screen
-        entityStateComponent.State = EntityState.Alive;
-
-        // Randomly set the Platform's width and height in blocks
-        platformComponent.WidthInBlocks = _randomNumberGenerator.Next(_minimumPlatformWidth, _maximumPlatformWidth + 1);
-        platformComponent.HeightInBlocks = _randomNumberGenerator.Next(_minimumPlatformHeight, _maximumPlatformHeight + 1);
-
-        // Set the position of this platform to the right hand side of the screen, and
-        // at the bottom of the screen minus the height of the platform in blocks
-        transformComponent.Position = new Vector2(
-            _spriteBatch.GraphicsDevice.Viewport.Bounds.Right, 
-            _spriteBatch.GraphicsDevice.Viewport.Bounds.Bottom - platformComponent.HeightInBlocks * _blockSpriteHeight);
-        
         // Each Platform consists of a grid of blocks, so we need to draw each block in
         // the correct position based on the Platform's width and height in blocks                
         multiplexedSpriteComponent.Sprites = new Sprite[platformComponent.WidthInBlocks * platformComponent.HeightInBlocks];
@@ -202,4 +201,36 @@ internal class PlatformSystem : EntityUpdateSystem
             }
         }
     }
+
+    private void RespawnPlatform(EntityStateComponent entityStateComponent, Transform2 transformComponent, PlatformComponent platformComponent, MultiplexedSpriteComponent multiplexedSpriteComponent, SizeComponent sizeComponent)
+    {
+        // Re-enable the Platform and set its position to the right hand side of the screen
+        entityStateComponent.State = EntityState.Alive;
+
+        // Randomly set the Platform's width and height in blocks
+        platformComponent.WidthInBlocks = _randomNumberGenerator.Next(_minimumPlatformWidth, _maximumPlatformWidth + 1);
+        platformComponent.HeightInBlocks = _randomNumberGenerator.Next(_minimumPlatformHeight, _maximumPlatformHeight + 1);
+        sizeComponent.Width = platformComponent.WidthInBlocks * _blockSpriteWidth;
+        sizeComponent.Height = platformComponent.HeightInBlocks * _blockSpriteHeight;
+
+        // Set the position of this platform to the right hand side of the screen, and
+        // at the bottom of the screen minus the height of the platform in blocks
+        transformComponent.Position = new Vector2(
+            _spriteBatch.GraphicsDevice.Viewport.Bounds.Right,
+            _spriteBatch.GraphicsDevice.Viewport.Bounds.Bottom - platformComponent.HeightInBlocks * _blockSpriteHeight);
+
+        BuildPlatformBlocks(transformComponent, platformComponent, multiplexedSpriteComponent);
+    }
+
+    private static void UpdatePlatform(float velocity, Transform2 transformComponent, PlatformComponent platformComponent, MultiplexedSpriteComponent multiplexedSpriteComponent)
+    {
+        // Move the Platform left across the screen based on the speed
+        var translation = new Vector2(velocity, 0);
+        transformComponent.Position += translation;
+
+        // Each Platform consists of a grid of blocks, so we need to 
+        // update each blocks individual position based on the speed too
+        for (var i = 0; i < multiplexedSpriteComponent.Transforms.Length; i++)
+            multiplexedSpriteComponent.Transforms[i].Position += translation;
+    }    
 }

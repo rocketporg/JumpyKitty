@@ -1,5 +1,6 @@
 ﻿using JumpyKitty.Core.Background;
 using JumpyKitty.Core.Platforms;
+using JumpyKitty.Core.Player;
 using JumpyKitty.Core.Shared;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
@@ -12,26 +13,44 @@ namespace JumpyKitty.Core.Screens;
 internal class GamePlayScreen : GameScreen
 {
     private readonly BackgroundSystem _backgroundSystem;
+    private readonly BoundingBoxSystem _boundingBoxSystem;
     private readonly CameraSystem _cameraSystem;
+    private readonly CollisionSystem _collisionSystem;
+    private readonly JumpSystem _jumpSystem;
     private readonly PauseScreen _pauseScreen;
+    private readonly PhysicsSystem _physicsSystem;
     private readonly PlatformSystem _platformSystem;
+    private readonly PlayerControlSystem _playerControlSystem;
+    private readonly PlayerSpawnSystem _playerSpawnSystem;
     private readonly ScreenManager _screenManager;
     private readonly SpriteDrawingSystem _spriteDrawingSystem;
     private World? _world;
 
     public GamePlayScreen(
         BackgroundSystem backgroundSystem,
+        BoundingBoxSystem boundingBoxSystem,
         CameraSystem cameraSystem,
+        CollisionSystem collisionSystem,
         Game game,
+        JumpSystem jumpSystem,
         PauseScreen pauseScreen,
+        PhysicsSystem physicsSystem,
         PlatformSystem platformSystem,
+        PlayerControlSystem playerControlSystem,
+        PlayerSpawnSystem playerSpawnSystem,
         ScreenManager screenManager,
         SpriteDrawingSystem spriteDrawingSystem) : base(game)
     {
         _backgroundSystem = backgroundSystem;
+        _boundingBoxSystem = boundingBoxSystem;
         _cameraSystem = cameraSystem;
+        _collisionSystem = collisionSystem;
+        _jumpSystem = jumpSystem;
         _pauseScreen = pauseScreen;
+        _physicsSystem = physicsSystem;
         _platformSystem = platformSystem;
+        _playerControlSystem = playerControlSystem;
+        _playerSpawnSystem = playerSpawnSystem;
         _screenManager = screenManager;
         _spriteDrawingSystem = spriteDrawingSystem;
     }
@@ -43,8 +62,26 @@ internal class GamePlayScreen : GameScreen
         // Add systems        
         _world = new WorldBuilder()
 
-            .AddSystem(_backgroundSystem)
+            // Add the player spawn system first so that
+            // it initialises the player before the other systems
+            .AddSystem(_playerSpawnSystem)
+
+            // Add the physics system and player control system next
+            // so that they run before the other systems            
+            .AddSystem(_playerControlSystem)
+            .AddSystem(_jumpSystem)
+            .AddSystem(_physicsSystem)
             .AddSystem(_platformSystem)
+
+            // Add the bounding box system and collision system next so that
+            // collisions are handled after the physics system has run and
+            // after the platform system has updated the platforms
+            .AddSystem(_boundingBoxSystem)
+            .AddSystem(_collisionSystem)
+
+            // Add the background drawing system and sprite drawing
+            // system last so that they run after the other systems
+            .AddSystem(_backgroundSystem)
             .AddSystem(_spriteDrawingSystem)
 
             // Add the camera system
@@ -58,11 +95,6 @@ internal class GamePlayScreen : GameScreen
 
     public override void UnloadContent()
     {
-        // We need to reset the physics world and dispose of the ECS world when we unload the
-        // content for this screen, otherwise when we come back to this screen the physics world
-        // will still have all the bodies in it...
-        //_physicsService.ResetWorld();
-
         // ...and the ECS world will still have all the entities
         // in it which will cause all sorts of weird issues!
         _world?.Dispose();
@@ -80,7 +112,7 @@ internal class GamePlayScreen : GameScreen
         // show the pause screen (which will pause the game until it's closed)
         var keyboardState = KeyboardExtended.GetState();
 
-        if (keyboardState.WasKeyPressed(Keys.Space))
+        if (keyboardState.WasKeyPressed(Keys.P))
         {
             // When the game is paused, we still draw the gameplay screen
             // but we don't update anything (i.e. paused ;-)
