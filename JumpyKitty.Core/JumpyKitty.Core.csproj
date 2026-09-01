@@ -12,6 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Content\Backgrounds\" />
-    <Folder Include="Screens\" />
+    <Folder Include="Content\Fonts\" />
   </ItemGroup>
 </Project>

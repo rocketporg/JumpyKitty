@@ -12,7 +12,7 @@ namespace JumpyKitty.Core.Shared;
 internal class CollisionSystem : EntityUpdateSystem
 {
     private ComponentMapper<BoundingBoxComponent> _boundingBoxMapper = default!;
-    private ComponentMapper<PhysicsComponent> _physicsMapper = default!;
+    private ComponentMapper<VelocityComponent> _physicsMapper = default!;
     private int _playerEntityId = default!;
     private ComponentMapper<PlayerComponent> _playerMapper = default!;
     private ComponentMapper<Transform2> _transformMapper = default!;
@@ -22,7 +22,7 @@ internal class CollisionSystem : EntityUpdateSystem
     public override void Initialize(IComponentMapperService mapperService)
     {
         _boundingBoxMapper = mapperService.GetMapper<BoundingBoxComponent>();
-        _physicsMapper = mapperService.GetMapper<PhysicsComponent>();
+        _physicsMapper = mapperService.GetMapper<VelocityComponent>();
         _playerMapper = mapperService.GetMapper<PlayerComponent>();
         _transformMapper = mapperService.GetMapper<Transform2>();
 

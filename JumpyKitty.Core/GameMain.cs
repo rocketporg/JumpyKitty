@@ -1,4 +1,5 @@
 ﻿using JumpyKitty.Core.Extensions;
+using JumpyKitty.Core.Player;
 using JumpyKitty.Core.Screens;
 using JumpyKitty.Core.Shared;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,7 +26,7 @@ public class GameMain : Game
 
     private CustomRenderTarget _customRenderTarget = default!;
     private readonly GraphicsDeviceManager _graphics;
-    private readonly ScreenManager _screenManager;    
+    private readonly ScreenManager _screenManager;
     private IServiceProvider _serviceProvider = default!;
 
     public GameMain()
@@ -37,7 +38,7 @@ public class GameMain : Game
         // Set initial video config
         _graphics.PreferredBackBufferWidth = _virtualResolutionWidth;
         _graphics.PreferredBackBufferHeight = _virtualResolutionHeight;
-        
+
         // If we want a different target fps from the default (which in Monogame is 60), then
         // we need to set the target 'time elapsed' we want for the specified target fps        
         TargetElapsedTime = TimeSpan.FromTicks((long)(TimeSpan.TicksPerSecond / 119));
@@ -80,8 +81,9 @@ public class GameMain : Game
         // Add the Monogame Extended screen manager too
         services.AddSingleton(_screenManager);
 
-        // To help with debugging
-        //services.AddSingleton<DebuggingService>();
+        // Some other services to help with dealing with the player and game state
+        services.AddSingleton<GameStateService>();
+        services.AddSingleton<PlayerService>();
 
         // We'll add our custom render target service so we can use our virtual resolution
         // but scale correctly to all different screen sizes easily        
@@ -106,19 +108,15 @@ public class GameMain : Game
 
             return new OrthographicCamera(viewportAdapter);
         });
-        
+
         // Add our ECS world        
         services.AddSingleton<WorldBuilder>();
 
         // This adds all our Monogame.Extended ECS systems (which are in this assembly)
         services.AddAllImplementationsAsSelf<ISystem>(ServiceLifetime.Singleton, Assembly.GetExecutingAssembly());
-        //services.AddAllImplementationsAsSelf<EntitySystemCollection>(ServiceLifetime.Singleton, Assembly.GetExecutingAssembly());
 
         // Now add all our screens (which are in this assembly)
         services.AddAllImplementationsAsSelf<Screen>(ServiceLifetime.Singleton, Assembly.GetExecutingAssembly());
-
-        // Register all factories
-        //services.AddAllImplementationsAsSelf<IFactory>(ServiceLifetime.Singleton, Assembly.GetExecutingAssembly());
 
         return services.BuildServiceProvider();
     }

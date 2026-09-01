@@ -1,8 +1,8 @@
 ﻿using Microsoft.Xna.Framework;
 
-namespace JumpyKitty.Core.Player;
+namespace JumpyKitty.Core.Shared;
 
-internal class PhysicsComponent
+internal class VelocityComponent
 {
     public bool IsFalling => Velocity.Y > 0;
     public bool IsJumping => Velocity.Y < 0;

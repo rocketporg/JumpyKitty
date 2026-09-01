@@ -29,7 +29,7 @@ internal class PlayerSpawnSystem : EntityProcessingSystem
         entity.Attach(new BoundingBoxComponent());
         entity.Attach(new EntityStateComponent { State = EntityState.Alive });
         entity.Attach(new JumpComponent());
-        entity.Attach(new PhysicsComponent());
+        entity.Attach(new VelocityComponent());
         entity.Attach(new PlayerComponent());
         entity.Attach(new SizeComponent { Width = _texture.Width, Height = _texture.Height });
         entity.Attach(new Sprite(_texture));

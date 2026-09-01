@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using JumpyKitty.Core.Shared;
+using Microsoft.Xna.Framework;
 using MonoGame.Extended;
 using MonoGame.Extended.ECS;
 using MonoGame.Extended.ECS.Systems;
@@ -11,7 +12,7 @@ internal class PhysicsSystem : EntityProcessingSystem
     private const float _gravity = 3100f;
     private const float _lowJumpGravityMultiplier = 2.75f;
 
-    private ComponentMapper<PhysicsComponent> _physicsMapper = default!;
+    private ComponentMapper<VelocityComponent> _physicsMapper = default!;
     private ComponentMapper<PlayerComponent> _playerMapper = default!;
     private ComponentMapper<Transform2> _transformMapper = default!;
 
@@ -19,7 +20,7 @@ internal class PhysicsSystem : EntityProcessingSystem
 
     public override void Initialize(IComponentMapperService mapperService)
     {
-        _physicsMapper = mapperService.GetMapper<PhysicsComponent>();
+        _physicsMapper = mapperService.GetMapper<VelocityComponent>();
         _playerMapper = mapperService.GetMapper<PlayerComponent>();
         _transformMapper = mapperService.GetMapper<Transform2>();
     }
