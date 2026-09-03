@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Input;
 using MonoGame.Extended.Screens;
 
@@ -13,6 +12,7 @@ internal class GameOverScreen : GameScreen
     private readonly ContentManager _contentManager;
     private SpriteFont _font = default!;
     private readonly GameStateService _gameStateService;
+    private readonly InputService _inputService;
     private readonly ScreenManager _screenManager;
     private readonly SpriteBatch _spriteBatch;
 
@@ -21,12 +21,14 @@ internal class GameOverScreen : GameScreen
         ScreenManager screenManager,
         ContentManager contentManager,
         SpriteBatch spriteBatch,
-        GameStateService gameStateService) : base(game)
+        GameStateService gameStateService,
+        InputService inputService) : base(game)
     {
         _screenManager = screenManager;
         _contentManager = contentManager;
         _spriteBatch = spriteBatch;
         _gameStateService = gameStateService;
+        _inputService = inputService;
     }
 
     public override void Draw(GameTime gameTime)
@@ -112,11 +114,11 @@ internal class GameOverScreen : GameScreen
     }
 
     public override void Update(GameTime gameTime)
-    {
-        var keyboardState = KeyboardExtended.GetState();
-
+    {        
         // If the restart button was pressed, we return to the gameplay screen and reset the game state
-        if (keyboardState.WasKeyPressed(Keys.Space))
+        _inputService.Poll();
+
+        if (_inputService.IsJumpPressed)
         {
             // Reset the game state and respawn the player            
             _gameStateService.RestartGame();

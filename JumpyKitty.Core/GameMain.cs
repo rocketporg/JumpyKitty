@@ -84,13 +84,14 @@ public class GameMain : Game
         // Some other services to help with dealing with the player and game state
         services.AddSingleton<GameStateService>();
         services.AddSingleton<PlayerService>();
+        services.AddSingleton<InputService>();
 
         // We'll add our custom render target service so we can use our virtual resolution
         // but scale correctly to all different screen sizes easily        
         services.AddSingleton<CustomRenderTarget>(options =>
         {
             var service = new CustomRenderTarget(GraphicsDevice, options.GetRequiredService<SpriteBatch>());
-            service.InitialiseRenderDestination(_virtualResolutionWidth, _virtualResolutionHeight);
+            service.InitialiseRenderDestination(_virtualResolutionWidth, _virtualResolutionHeight, Color.CornflowerBlue);
 
             return service;
         });
@@ -129,9 +130,6 @@ public class GameMain : Game
         // Draw all registered drawable game components
         base.Draw(gameTime);
 
-        // Now draw everything as normal        
-        //_debuggingService.Draw();
-
         // Finally, draw the render target to the screen
         _customRenderTarget.Draw();
     }
@@ -147,12 +145,11 @@ public class GameMain : Game
 
         // Now we can use the screen manager to load the first game screen                
         _customRenderTarget = _serviceProvider.GetRequiredService<CustomRenderTarget>();
-        //_debuggingService = _serviceProvider.GetRequiredService<DebuggingService>();
     }
 
     protected override void LoadContent()
     {
-        var startingScreen = _serviceProvider.GetRequiredService<GamePlayScreen>();
+        var startingScreen = _serviceProvider.GetRequiredService<TitleScreen>();
         _screenManager.ShowScreen(startingScreen);
     }
 
